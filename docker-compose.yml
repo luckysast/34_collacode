@@ -1,0 +1,35 @@
+version: '2.4'
+
+volumes:
+  front:
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker_config/backend/Dockerfile
+    restart: on-failure
+
+  nginx:
+    image: nginx:1.15.9-alpine
+    ports:
+      - "9997:80"
+    volumes:
+      - ./docker_config/nginx/conf:/etc/nginx/conf.d
+      - ./docker_config/nginx/nginx.proxy_params:/etc/nginx/proxy_params
+      - front:/front:ro
+    restart: on-failure
+
+  front_build:
+    build:
+      context: .
+      dockerfile: docker_config/front_build/Dockerfile
+    restart: on-failure
+    volumes:
+    - front:/front
+
+  redis:
+    image: redis:5.0.5-alpine
+    restart: on-failure
+    sysctls:
+      net.core.somaxconn: 1024
